@@ -13,7 +13,7 @@ export async function getStorageLocations() {
 
 export async function getCurrentInventory(locationId?: number): Promise<CurrentInventoryRow[]> {
   if (locationId) {
-    // Most recent count per product at this location
+    // For each product, get its count from the most recent session at this location
     const rows = await query<CurrentInventoryRow>(`
       SELECT
         p.id, p.name, p.category, p.unit, p.distributor,
@@ -21,14 +21,9 @@ export async function getCurrentInventory(locationId?: number): Promise<CurrentI
         ic.quantity, ins.counted_at, ins.id as session_id,
         ins.location_id, sl.name as location_name
       FROM products p
-      LEFT JOIN (
-        SELECT ic2.product_id, ic2.quantity, ic2.session_id
-        FROM inventory_counts ic2
-        JOIN inventory_sessions ins2 ON ins2.id = ic2.session_id
-        WHERE ins2.location_id = ?
-        GROUP BY ic2.product_id
-        HAVING ic2.session_id = MAX(ic2.session_id)
-      ) ic ON ic.product_id = p.id
+      LEFT JOIN inventory_counts ic
+        ON ic.product_id = p.id
+        AND ic.session_id = (SELECT MAX(id) FROM inventory_sessions WHERE location_id = ?)
       LEFT JOIN inventory_sessions ins ON ins.id = ic.session_id
       LEFT JOIN storage_locations sl ON sl.id = ins.location_id
       WHERE p.is_active = 1
@@ -41,7 +36,7 @@ export async function getCurrentInventory(locationId?: number): Promise<CurrentI
       total_value: (r.quantity ?? 0) * r.cost_per_unit,
     }));
   } else {
-    // All locations combined - sum quantities across locations
+    // All locations: sum the most recent count per product per location
     const rows = await query<CurrentInventoryRow>(`
       SELECT
         p.id, p.name, p.category, p.unit, p.distributor,
@@ -50,16 +45,10 @@ export async function getCurrentInventory(locationId?: number): Promise<CurrentI
         MAX(ins.counted_at) as counted_at,
         NULL as session_id, NULL as location_id, 'All Locations' as location_name
       FROM products p
-      LEFT JOIN (
-        SELECT ic2.product_id, ic2.quantity, ic2.session_id
-        FROM inventory_counts ic2
-        JOIN inventory_sessions ins2 ON ins2.id = ic2.session_id
-        WHERE ins2.id IN (
-          SELECT MAX(id) FROM inventory_sessions GROUP BY location_id
-        )
-        GROUP BY ic2.product_id, ins2.location_id
-        HAVING ic2.session_id = MAX(ic2.session_id)
-      ) ic ON ic.product_id = p.id
+      CROSS JOIN storage_locations sl
+      LEFT JOIN inventory_counts ic
+        ON ic.product_id = p.id
+        AND ic.session_id = (SELECT MAX(id) FROM inventory_sessions WHERE location_id = sl.id)
       LEFT JOIN inventory_sessions ins ON ins.id = ic.session_id
       WHERE p.is_active = 1
       GROUP BY p.id
@@ -270,20 +259,14 @@ export async function getLowInventoryItems() {
   }>(`
     SELECT
       p.id as product_id, p.name as product_name, p.category, p.unit, p.distributor,
-      ins.location_id, sl.name as location_name,
+      sl.id as location_id, sl.name as location_name,
       ic.quantity, p.low_threshold, p.warning_threshold
     FROM products p
     CROSS JOIN storage_locations sl
-    LEFT JOIN (
-      SELECT ic2.product_id, ic2.quantity, ic2.session_id, ins2.location_id
-      FROM inventory_counts ic2
-      JOIN inventory_sessions ins2 ON ins2.id = ic2.session_id
-      GROUP BY ic2.product_id, ins2.location_id
-      HAVING ic2.session_id = MAX(ic2.session_id)
-    ) ic ON ic.product_id = p.id AND ic.location_id = sl.id
-    LEFT JOIN inventory_sessions ins ON ins.id = ic.session_id
+    JOIN inventory_counts ic
+      ON ic.product_id = p.id
+      AND ic.session_id = (SELECT MAX(id) FROM inventory_sessions WHERE location_id = sl.id)
     WHERE p.is_active = 1
-    AND ic.quantity IS NOT NULL
     AND ic.quantity <= p.warning_threshold
     ORDER BY ic.quantity ASC, p.name
   `);
@@ -302,17 +285,12 @@ export async function getDashboardStats() {
     ORDER BY ins.counted_at DESC LIMIT 1
   `);
   const totalValue = await query<{ total: number }>(`
-    SELECT COALESCE(SUM(p.cost_per_unit * COALESCE(ic.quantity, 0)), 0) as total
+    SELECT COALESCE(SUM(p.cost_per_unit * ic.quantity), 0) as total
     FROM products p
-    LEFT JOIN (
-      SELECT ic2.product_id, ic2.quantity
-      FROM inventory_counts ic2
-      WHERE ic2.session_id IN (
-        SELECT MAX(id) FROM inventory_sessions GROUP BY location_id
-      )
-      GROUP BY ic2.product_id
-      HAVING ic2.session_id = MAX(ic2.session_id)
-    ) ic ON ic.product_id = p.id
+    CROSS JOIN storage_locations sl
+    JOIN inventory_counts ic
+      ON ic.product_id = p.id
+      AND ic.session_id = (SELECT MAX(id) FROM inventory_sessions WHERE location_id = sl.id)
     WHERE p.is_active = 1
   `);
 
