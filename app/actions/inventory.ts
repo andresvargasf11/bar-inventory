@@ -295,11 +295,17 @@ export async function getDashboardStats() {
   `);
 
   const lowItems = await getLowInventoryItems();
-  const locationSessions = await query<{ location_id: number; location_name: string; counted_at: number }>(`
-    SELECT ins.location_id, sl.name as location_name, MAX(ins.counted_at) as counted_at
-    FROM inventory_sessions ins
-    JOIN storage_locations sl ON sl.id = ins.location_id
-    GROUP BY ins.location_id
+  const locationSessions = await query<{ location_id: number; location_name: string; counted_at: number; product_count: number }>(`
+    SELECT sub.location_id, sl.name as location_name, sub.counted_at,
+      COUNT(ic.id) as product_count
+    FROM (
+      SELECT location_id, MAX(id) as session_id, MAX(counted_at) as counted_at
+      FROM inventory_sessions
+      GROUP BY location_id
+    ) sub
+    JOIN storage_locations sl ON sl.id = sub.location_id
+    LEFT JOIN inventory_counts ic ON ic.session_id = sub.session_id
+    GROUP BY sub.location_id
   `);
 
   return {

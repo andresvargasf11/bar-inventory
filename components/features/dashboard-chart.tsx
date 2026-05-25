@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } fro
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Props {
-  locationSessions: Array<{ location_id: number; location_name: string; counted_at: number }>;
+  locationSessions: Array<{ location_id: number; location_name: string; counted_at: number; product_count: number }>;
   lowItems: Array<{
     product_id: number;
     location_id: number;
@@ -25,7 +25,9 @@ export function DashboardChart({ locationSessions, lowItems, totalProducts }: Pr
     const warning = items.filter(
       (i) => i.quantity !== null && i.quantity > i.low_threshold && i.quantity <= i.warning_threshold
     ).length;
-    const good = Math.max(0, totalProducts - low - warning);
+    // Use the actual counted products in the latest session, not the full catalog
+    const counted = Number(ls.product_count ?? 0);
+    const good = Math.max(0, counted - low - warning);
     return {
       name: ls.location_name,
       Good: good,
