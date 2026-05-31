@@ -16,6 +16,7 @@ export default async function CountPage({
 
   return (
     <InventoryCountForm
+      key={locationId}
       products={products}
       locations={locations}
       selectedLocationId={locationId}

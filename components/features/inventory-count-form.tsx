@@ -28,8 +28,13 @@ export function InventoryCountForm({ products, locations, selectedLocationId, la
   const inputRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const barcodeRef = useRef<HTMLInputElement>(null);
 
-  // Update counts when location changes (reload previous counts)
+  // Navigate to reload server data when user switches location
+  const isFirstRender = useRef(true);
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     router.push(`/inventory/count?location=${locationId}`);
   }, [locationId, router]);
 
