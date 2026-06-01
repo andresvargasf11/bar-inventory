@@ -122,8 +122,15 @@ export async function batchImportProducts(
   }>
 ) {
   let imported = 0;
+  let skipped = 0;
   for (const row of rows) {
     if (!row.name?.trim()) continue;
+    // Skip if an active product with this name already exists (prevents duplicate imports)
+    const existing = await query<{ id: number }>(
+      'SELECT id FROM products WHERE LOWER(TRIM(name)) = LOWER(?) AND is_active = 1',
+      [row.name.trim()]
+    );
+    if (existing.length > 0) { skipped++; continue; }
     await execute(
       `INSERT INTO products (name, category, unit, distributor, cost_per_unit, low_threshold, warning_threshold, sku)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -141,7 +148,7 @@ export async function batchImportProducts(
     imported++;
   }
   revalidatePath('/products');
-  return { success: true, imported };
+  return { success: true, imported, skipped };
 }
 
 // Custom Fields
@@ -175,6 +182,8 @@ export async function createCustomField(formData: FormData) {
 }
 
 export async function deleteCustomField(id: number) {
+  // FK cascade is not enforced by LibSQL without PRAGMA foreign_keys=ON, so clean up manually
+  await execute('DELETE FROM product_custom_values WHERE custom_field_id=?', [id]);
   await execute('DELETE FROM custom_fields WHERE id=?', [id]);
   revalidatePath('/products');
   revalidatePath('/settings');

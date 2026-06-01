@@ -70,13 +70,14 @@ export function CsvImport() {
   const handleImport = () => {
     if (validRows.length === 0) return;
     startTransition(async () => {
-      const result = await batchImportProducts(validRows);
-      if (result.success) {
-        toast.success(`Imported ${result.imported} products`);
+      try {
+        const result = await batchImportProducts(validRows);
+        const skipMsg = result.skipped ? ` (${result.skipped} skipped — already exist)` : '';
+        toast.success(`Imported ${result.imported} products${skipMsg}`);
         router.push('/products');
         router.refresh();
-      } else {
-        toast.error('Import failed');
+      } catch {
+        toast.error('Import failed. Please try again.');
       }
     });
   };

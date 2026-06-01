@@ -17,7 +17,7 @@ export async function verifyPin(pin: string, hash: string): Promise<boolean> {
 
 export async function createSession(timeoutMinutes = 30): Promise<string> {
   const exp = Math.floor(Date.now() / 1000) + timeoutMinutes * 60;
-  return new SignJWT({ sub: 'authenticated' })
+  return new SignJWT({ sub: 'authenticated', timeout: timeoutMinutes })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime(exp)
     .setIssuedAt()

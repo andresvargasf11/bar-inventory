@@ -162,7 +162,10 @@ export function ProductForm({ product, customFields, customValues = {}, defaults
               const fieldName = `custom_${field.id}`;
               const defaultValue = customValues[field.id] ?? '';
               if (field.field_type === 'dropdown') {
-                const options = field.options ? JSON.parse(field.options) as string[] : [];
+                const options: string[] = (() => {
+                  if (!field.options) return [];
+                  try { return JSON.parse(field.options) as string[]; } catch { return []; }
+                })();
                 return (
                   <Select key={field.id} label={field.name} name={fieldName} defaultValue={defaultValue}>
                     <option value="">— Select —</option>

@@ -66,7 +66,8 @@ export async function unlockWithPin(formData: FormData) {
     path: '/',
   });
 
-  redirect(from.startsWith('/') ? from : '/');
+  // Prevent open redirect: must start with '/' but not '//' (protocol-relative URL)
+  redirect(from.startsWith('/') && !from.startsWith('//') ? from : '/');
 }
 
 export async function logout() {

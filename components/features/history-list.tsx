@@ -50,6 +50,10 @@ export function HistoryList({ sessions, locations }: Props) {
       toast.error('Select a location and date range');
       return;
     }
+    if (usageStart > usageEnd) {
+      toast.error('Start date must be before end date');
+      return;
+    }
     startTransition(async () => {
       const data = await getUsageReport(Number(usageLocation), usageStart, usageEnd);
       if (data.length === 0) {

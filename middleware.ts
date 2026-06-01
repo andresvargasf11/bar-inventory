@@ -28,8 +28,8 @@ export async function middleware(request: NextRequest) {
 
   try {
     const { payload } = await jwtVerify(token, SECRET);
-    // Sliding window: refresh the cookie expiry on each request
-    const timeoutMinutes = 30; // fallback; actual value from DB is used at login
+    // Sliding window: use the timeout stored in the JWT at login time
+    const timeoutMinutes = typeof payload.timeout === 'number' ? payload.timeout : 30;
     const newExp = Math.floor(Date.now() / 1000) + timeoutMinutes * 60;
     const { SignJWT } = await import('jose');
     const newToken = await new SignJWT({ sub: payload.sub })
