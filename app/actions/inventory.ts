@@ -78,37 +78,46 @@ export async function getLastCountsForLocation(locationId: number) {
 }
 
 export async function saveInventorySession(formData: FormData) {
-  const locationId = parseInt(formData.get('location_id') as string, 10);
-  const notes = (formData.get('notes') as string) || null;
-  const countsJson = formData.get('counts') as string;
-
-  if (!locationId) return { error: 'Location is required' };
-
-  let counts: Record<string, number>;
   try {
-    counts = JSON.parse(countsJson);
-  } catch {
-    return { error: 'Invalid counts data' };
-  }
+    const locationId = parseInt(formData.get('location_id') as string, 10);
+    const notes = (formData.get('notes') as string) || null;
+    const countsJson = formData.get('counts') as string;
 
-  const result = await execute(
-    'INSERT INTO inventory_sessions (location_id, notes, counted_at) VALUES (?, ?, unixepoch())',
-    [locationId, notes]
-  );
-  const sessionId = result.lastInsertRowid != null ? Number(result.lastInsertRowid) : null;
-  if (!sessionId) return { error: 'Failed to create session' };
+    if (!locationId || isNaN(locationId)) return { error: 'Location is required' };
+    if (!countsJson) return { error: 'No counts data received' };
 
-  for (const [productId, quantity] of Object.entries(counts)) {
-    if (quantity === null || quantity === undefined) continue;
-    await execute(
-      'INSERT INTO inventory_counts (session_id, product_id, quantity) VALUES (?, ?, ?)',
-      [sessionId, Number(productId), Number(quantity)]
+    let counts: Record<string, number>;
+    try {
+      counts = JSON.parse(countsJson);
+    } catch {
+      return { error: 'Invalid counts data' };
+    }
+
+    if (!counts || typeof counts !== 'object') return { error: 'Counts must be an object' };
+
+    const result = await execute(
+      'INSERT INTO inventory_sessions (location_id, notes, counted_at) VALUES (?, ?, unixepoch())',
+      [locationId, notes]
     );
-  }
+    const sessionId = result.lastInsertRowid != null ? Number(result.lastInsertRowid) : null;
+    if (!sessionId) return { error: 'Failed to create session — database did not return a row ID' };
 
-  revalidatePath('/inventory');
-  revalidatePath('/');
-  return { success: true, sessionId };
+    for (const [productId, quantity] of Object.entries(counts)) {
+      if (quantity === null || quantity === undefined) continue;
+      await execute(
+        'INSERT INTO inventory_counts (session_id, product_id, quantity) VALUES (?, ?, ?)',
+        [sessionId, Number(productId), Number(quantity)]
+      );
+    }
+
+    revalidatePath('/inventory');
+    revalidatePath('/');
+    return { success: true, sessionId };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[saveInventorySession] error:', message);
+    return { error: `Save failed: ${message}` };
+  }
 }
 
 export async function updateQuickQty(productId: number, locationId: number, qty: number) {

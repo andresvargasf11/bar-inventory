@@ -90,12 +90,18 @@ export function InventoryCountForm({ products, locations, selectedLocationId, la
     fd.append('counts', JSON.stringify(countsData));
 
     startTransition(async () => {
-      const result = await saveInventorySession(fd);
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success('Inventory count saved!');
-        router.push('/inventory');
+      try {
+        const result = await saveInventorySession(fd);
+        if (result.error) {
+          toast.error(result.error);
+        } else {
+          toast.success('Inventory count saved!');
+          router.push(`/inventory?location=${locationId}`);
+          router.refresh();
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        toast.error(`Save failed: ${message}`);
       }
     });
   };
