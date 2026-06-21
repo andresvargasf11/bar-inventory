@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { query, execute, batch } from '@/lib/db';
+import { query, execute } from '@/lib/db';
 import { CurrentInventoryRow, InventorySession, SessionComparison, UsageReportRow } from '@/lib/types';
 import { getInventoryStatus } from '@/lib/utils';
 
@@ -95,19 +95,14 @@ export async function saveInventorySession(formData: FormData) {
     'INSERT INTO inventory_sessions (location_id, notes, counted_at) VALUES (?, ?, unixepoch())',
     [locationId, notes]
   );
-  const sessionId = Number(result.lastInsertRowid);
-  if (!sessionId || isNaN(sessionId)) return { error: 'Failed to create session' };
+  const sessionId = result.lastInsertRowid != null ? Number(result.lastInsertRowid) : null;
+  if (!sessionId) return { error: 'Failed to create session' };
 
-  // Insert all counts atomically so a partial failure doesn't leave a half-saved session
-  const countEntries = Object.entries(counts).filter(
-    ([, quantity]) => quantity !== null && quantity !== undefined
-  );
-  if (countEntries.length > 0) {
-    await batch(
-      countEntries.map(([productId, quantity]) => ({
-        sql: 'INSERT INTO inventory_counts (session_id, product_id, quantity) VALUES (?, ?, ?)',
-        args: [sessionId, Number(productId), Number(quantity)],
-      }))
+  for (const [productId, quantity] of Object.entries(counts)) {
+    if (quantity === null || quantity === undefined) continue;
+    await execute(
+      'INSERT INTO inventory_counts (session_id, product_id, quantity) VALUES (?, ?, ?)',
+      [sessionId, Number(productId), Number(quantity)]
     );
   }
 
