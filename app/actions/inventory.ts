@@ -111,6 +111,7 @@ export async function saveInventorySession(formData: FormData) {
     }
 
     revalidatePath('/inventory');
+    revalidatePath('/inventory/count');
     revalidatePath('/');
     return { success: true, sessionId };
   } catch (err) {

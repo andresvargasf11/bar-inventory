@@ -123,7 +123,7 @@ export function InventoryTable({ rows, locations, selectedLocationId }: Props) {
           <Button variant="outline" size="sm" onClick={handleExport}>
             <Download size={14} /> Export CSV
           </Button>
-          <Link href="/inventory/count">
+          <Link href={`/inventory/count${selectedLocationId ? `?location=${selectedLocationId}` : ''}`}>
             <Button size="sm"><Plus size={14} /> New Count</Button>
           </Link>
         </div>
