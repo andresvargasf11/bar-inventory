@@ -209,12 +209,13 @@ export function InventoryCountForm({ products, locations, selectedLocationId, la
                     </div>
                     <input
                       ref={(el) => { inputRefs.current[product.id] = el; }}
-                      type="number"
+                      type="text"
                       inputMode="decimal"
                       placeholder="0"
                       value={counts[product.id]}
                       onChange={(e) => setCounts((prev) => ({ ...prev, [product.id]: e.target.value }))}
                       onKeyDown={(e) => handleKeyDown(e, product.id, globalIdx)}
+                      onFocus={(e) => e.target.select()}
                       className={cn(
                         'w-24 h-10 px-2 rounded-lg border text-right text-white text-base font-medium focus:outline-none',
                         isLow
@@ -225,8 +226,6 @@ export function InventoryCountForm({ products, locations, selectedLocationId, la
                           ? 'bg-slate-800 border-slate-600 focus:border-orange-500'
                           : 'bg-slate-800 border-slate-700 focus:border-orange-500'
                       )}
-                      min="0"
-                      step="0.5"
                     />
                   </div>
                 );
