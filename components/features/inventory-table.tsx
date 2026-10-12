@@ -194,44 +194,35 @@ export function InventoryTable({ rows, locations, selectedLocationId }: Props) {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-slate-700/60 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="rounded-xl border border-slate-700/60 overflow-x-auto">
+        <table className="w-full min-w-[700px] text-sm">
           <thead>
             <tr className="border-b border-slate-700 bg-slate-900">
-              {/* Product — always visible */}
               <th onClick={() => handleSort('name')} className="px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
                 <span className="flex items-center gap-1">Product <ArrowUpDown size={11} /></span>
               </th>
-              {/* Category — sm+ */}
-              <th onClick={() => handleSort('category')} className="hidden sm:table-cell px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
+              <th onClick={() => handleSort('category')} className="px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
                 <span className="flex items-center gap-1">Category <ArrowUpDown size={11} /></span>
               </th>
-              {/* Unit — md+ */}
-              <th onClick={() => handleSort('unit')} className="hidden md:table-cell px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
+              <th onClick={() => handleSort('unit')} className="px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
                 <span className="flex items-center gap-1">Unit <ArrowUpDown size={11} /></span>
               </th>
-              {/* Distributor — lg+ */}
-              <th onClick={() => handleSort('distributor')} className="hidden lg:table-cell px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
+              <th onClick={() => handleSort('distributor')} className="px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
                 <span className="flex items-center gap-1">Distributor <ArrowUpDown size={11} /></span>
               </th>
-              {/* Cost — md+ */}
-              <th onClick={() => handleSort('cost_per_unit')} className="hidden md:table-cell px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
+              <th onClick={() => handleSort('cost_per_unit')} className="px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
                 <span className="flex items-center gap-1">Cost <ArrowUpDown size={11} /></span>
               </th>
-              {/* Qty — always visible */}
               <th onClick={() => handleSort('quantity')} className="px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
                 <span className="flex items-center gap-1">Qty <ArrowUpDown size={11} /></span>
               </th>
-              {/* Threshold — md+ */}
-              <th onClick={() => handleSort('low_threshold')} className="hidden md:table-cell px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
+              <th onClick={() => handleSort('low_threshold')} className="px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
                 <span className="flex items-center gap-1">Threshold <ArrowUpDown size={11} /></span>
               </th>
-              {/* Value — sm+ */}
-              <th onClick={() => handleSort('total_value')} className="hidden sm:table-cell px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
+              <th onClick={() => handleSort('total_value')} className="px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
                 <span className="flex items-center gap-1">Value <ArrowUpDown size={11} /></span>
               </th>
-              {/* Updated — lg+ */}
-              <th onClick={() => handleSort('counted_at')} className="hidden lg:table-cell px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
+              <th onClick={() => handleSort('counted_at')} className="px-3 py-2.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-white whitespace-nowrap select-none">
                 <span className="flex items-center gap-1">Updated <ArrowUpDown size={11} /></span>
               </th>
             </tr>
@@ -257,16 +248,11 @@ export function InventoryTable({ rows, locations, selectedLocationId }: Props) {
                   <Link href={`/products/${row.id}`} className="font-medium text-white hover:text-orange-400 transition-colors">
                     {row.name}
                   </Link>
-                  {/* Show category · unit as subtitle on mobile when those columns are hidden */}
-                  <div className="sm:hidden text-xs text-slate-500 mt-0.5">
-                    {[row.category, row.unit].filter(Boolean).join(' · ')}
-                  </div>
-                  {row.sku && <div className="hidden text-xs text-slate-500">{row.sku}</div>}
                 </td>
-                <td className="hidden sm:table-cell px-3 py-2.5 text-slate-400">{row.category}</td>
-                <td className="hidden md:table-cell px-3 py-2.5 text-slate-400">{row.unit}</td>
-                <td className="hidden lg:table-cell px-3 py-2.5 text-slate-400 max-w-[120px] truncate">{row.distributor}</td>
-                <td className="hidden md:table-cell px-3 py-2.5 text-slate-300">{formatCurrency(row.cost_per_unit)}</td>
+                <td className="px-3 py-2.5 text-slate-400">{row.category}</td>
+                <td className="px-3 py-2.5 text-slate-400">{row.unit}</td>
+                <td className="px-3 py-2.5 text-slate-400 max-w-[120px] truncate">{row.distributor}</td>
+                <td className="px-3 py-2.5 text-slate-300">{formatCurrency(row.cost_per_unit)}</td>
                 <td className="px-3 py-2.5">
                   {editingQty?.id === row.id ? (
                     <input
@@ -296,7 +282,7 @@ export function InventoryTable({ rows, locations, selectedLocationId }: Props) {
                     </button>
                   )}
                 </td>
-                <td className="hidden md:table-cell px-3 py-2.5">
+                <td className="px-3 py-2.5">
                   <div className="flex items-center gap-1">
                     <span className={cn('text-xs', row.status === 'low' ? 'text-red-400' : row.status === 'warning' ? 'text-yellow-400' : 'text-slate-400')}>
                       ≤{row.low_threshold}
@@ -305,8 +291,8 @@ export function InventoryTable({ rows, locations, selectedLocationId }: Props) {
                     <span className="text-xs text-yellow-500">≤{row.warning_threshold}</span>
                   </div>
                 </td>
-                <td className="hidden sm:table-cell px-3 py-2.5 text-slate-300">{formatCurrency(row.total_value)}</td>
-                <td className="hidden lg:table-cell px-3 py-2.5 text-xs text-slate-500 whitespace-nowrap">
+                <td className="px-3 py-2.5 text-slate-300">{formatCurrency(row.total_value)}</td>
+                <td className="px-3 py-2.5 text-xs text-slate-500 whitespace-nowrap">
                   {row.counted_at ? formatDateTime(row.counted_at) : '—'}
                 </td>
               </tr>
@@ -316,14 +302,11 @@ export function InventoryTable({ rows, locations, selectedLocationId }: Props) {
             <tfoot>
               <tr className="border-t border-slate-700 bg-slate-900/50">
                 <td className="px-3 py-2 text-xs text-slate-400">{filtered.length} products shown</td>
-                <td className="hidden sm:table-cell" />
-                <td className="hidden md:table-cell" />
-                <td className="hidden lg:table-cell" />
-                <td className="hidden md:table-cell" />
+                <td /><td /><td /><td />
                 <td />
-                <td className="hidden md:table-cell" />
-                <td className="hidden sm:table-cell px-3 py-2 text-sm font-semibold text-white">{formatCurrency(totalValue)}</td>
-                <td className="hidden lg:table-cell" />
+                <td />
+                <td className="px-3 py-2 text-sm font-semibold text-white">{formatCurrency(totalValue)}</td>
+                <td />
               </tr>
             </tfoot>
           )}

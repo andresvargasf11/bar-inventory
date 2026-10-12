@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Scan, Save, AlertCircle } from 'lucide-react';
+import { Scan, Save, AlertCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Product, StorageLocation } from '@/lib/types';
 import { saveInventorySession } from '@/app/actions/inventory';
@@ -24,6 +24,7 @@ export function InventoryCountForm({ products, locations, selectedLocationId, la
   );
   const [notes, setNotes] = useState('');
   const [barcodeInput, setBarcodeInput] = useState('');
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isPending, startTransition] = useTransition();
   const inputRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const barcodeRef = useRef<HTMLInputElement>(null);
@@ -38,17 +39,35 @@ export function InventoryCountForm({ products, locations, selectedLocationId, la
     router.push(`/inventory/count?location=${locationId}`);
   }, [locationId, router]);
 
+  const jumpToProduct = (product: Product) => {
+    inputRefs.current[product.id]?.focus();
+    inputRefs.current[product.id]?.select();
+    setBarcodeInput('');
+    setSearchResults([]);
+    toast.success(`Found: ${product.name}`);
+  };
+
   const handleBarcodeInput = (value: string) => {
     setBarcodeInput(value);
-    if (!value.trim()) return;
-    const product = products.find(
-      (p) => p.sku.toLowerCase() === value.toLowerCase().trim()
+    const q = value.toLowerCase().trim();
+    if (!q) {
+      setSearchResults([]);
+      return;
+    }
+    // Exact SKU match — immediate jump (barcode scanner)
+    const exactSku = products.find((p) => p.sku && p.sku.toLowerCase() === q);
+    if (exactSku) {
+      jumpToProduct(exactSku);
+      return;
+    }
+    // Partial name or SKU match — show dropdown
+    const matches = products.filter(
+      (p) => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q))
     );
-    if (product) {
-      inputRefs.current[product.id]?.focus();
-      inputRefs.current[product.id]?.select();
-      setBarcodeInput('');
-      toast.success(`Found: ${product.name}`);
+    if (matches.length === 1) {
+      jumpToProduct(matches[0]);
+    } else {
+      setSearchResults(matches.slice(0, 6));
     }
   };
 
@@ -137,17 +156,47 @@ export function InventoryCountForm({ products, locations, selectedLocationId, la
         ))}
       </div>
 
-      {/* Barcode scanner input */}
-      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700">
-        <Scan size={16} className="text-orange-400 flex-shrink-0" />
-        <input
-          ref={barcodeRef}
-          type="text"
-          placeholder="Scan barcode or enter SKU to jump to product…"
-          value={barcodeInput}
-          onChange={(e) => handleBarcodeInput(e.target.value)}
-          className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
-        />
+      {/* Search input */}
+      <div className="space-y-1">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700">
+          <Scan size={16} className="text-orange-400 flex-shrink-0" />
+          <input
+            ref={barcodeRef}
+            type="text"
+            placeholder="Search by name, barcode, or SKU…"
+            value={barcodeInput}
+            onChange={(e) => handleBarcodeInput(e.target.value)}
+            className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
+          />
+          {barcodeInput && (
+            <button
+              type="button"
+              onClick={() => { setBarcodeInput(''); setSearchResults([]); }}
+              className="text-slate-500 hover:text-slate-300"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {searchResults.length > 0 && (
+          <div className="rounded-xl bg-slate-900 border border-slate-700 overflow-hidden">
+            {searchResults.map((product) => (
+              <button
+                key={product.id}
+                type="button"
+                onClick={() => jumpToProduct(product)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-800 active:bg-slate-700 border-b border-slate-800 last:border-b-0 transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-white truncate">{product.name}</div>
+                  <div className="text-xs text-slate-500">{[product.category, product.unit].filter(Boolean).join(' · ')}</div>
+                </div>
+                {product.sku && <div className="text-xs text-slate-500 flex-shrink-0">{product.sku}</div>}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Notes */}
