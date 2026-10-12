@@ -25,7 +25,7 @@ export function ProductForm({ product, customFields, customValues = {}, defaults
   const [showDelete, setShowDelete] = useState(false);
   const [error, setError] = useState('');
 
-  const categories = parseCategories(defaults.categories ?? 'Spirits,Beer,Wine,Liqueur,Mixer');
+  const categories = parseCategories(defaults.categories ?? 'Spirits,Beer,Wine,Liqueur,Mixer,Garnish,Supplies,Menu Items');
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

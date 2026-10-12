@@ -87,7 +87,7 @@ CREATE INDEX IF NOT EXISTS idx_product_custom_values_product ON product_custom_v
 const SEED_SETTINGS = [
   ['inactivity_timeout', '30'],
   ['default_unit', '750ml'],
-  ['default_categories', 'Spirits,Beer,Wine,Liqueur,Mixer,Garnish,Supplies'],
+  ['default_categories', 'Spirits,Beer,Wine,Liqueur,Mixer,Garnish,Supplies,Menu Items'],
   ['reminder_threshold', '7'],
   ['setup_complete', '0'],
 ];

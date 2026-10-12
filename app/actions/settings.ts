@@ -6,7 +6,18 @@ import { AppSettings } from '@/lib/types';
 
 export async function getAppSettings(): Promise<AppSettings> {
   const rows = await query<{ key: string; value: string }>('SELECT key, value FROM app_settings');
-  return Object.fromEntries(rows.map((r) => [r.key, r.value])) as AppSettings;
+  const settings = Object.fromEntries(rows.map((r) => [r.key, r.value])) as AppSettings;
+
+  // Ensure Menu Items is in default_categories (one-time migration)
+  const cats = settings.default_categories ?? 'Spirits,Beer,Wine,Liqueur,Mixer,Garnish,Supplies';
+  const catList = cats.split(',').map((c) => c.trim()).filter(Boolean);
+  if (!catList.includes('Menu Items')) {
+    const updated = [...catList, 'Menu Items'].join(',');
+    await setSetting('default_categories', updated);
+    settings.default_categories = updated;
+  }
+
+  return settings;
 }
 
 export async function updateSettings(formData: FormData) {
