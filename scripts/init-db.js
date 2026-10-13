@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS products (
   low_threshold REAL NOT NULL DEFAULT 0,
   warning_threshold REAL NOT NULL DEFAULT 0,
   sku TEXT NOT NULL DEFAULT '',
+  is_menu_item INTEGER NOT NULL DEFAULT 0,
   is_active INTEGER NOT NULL DEFAULT 1,
   created_at INTEGER NOT NULL DEFAULT (unixepoch()),
   updated_at INTEGER NOT NULL DEFAULT (unixepoch())

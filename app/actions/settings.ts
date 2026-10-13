@@ -5,6 +5,13 @@ import { query, execute, setSetting } from '@/lib/db';
 import { AppSettings } from '@/lib/types';
 
 export async function getAppSettings(): Promise<AppSettings> {
+  // One-time schema migration: add is_menu_item column if missing
+  try {
+    await execute('ALTER TABLE products ADD COLUMN is_menu_item INTEGER NOT NULL DEFAULT 0');
+  } catch {
+    // Column already exists — ignore
+  }
+
   const rows = await query<{ key: string; value: string }>('SELECT key, value FROM app_settings');
   const settings = Object.fromEntries(rows.map((r) => [r.key, r.value])) as AppSettings;
 

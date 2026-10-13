@@ -27,6 +27,7 @@ export function InventoryTable({ rows, locations, selectedLocationId }: Props) {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterDistributor, setFilterDistributor] = useState('');
+  const [filterMenuItems, setFilterMenuItems] = useState(false);
   const [editingQty, setEditingQty] = useState<{ id: number; value: string } | null>(null);
   const [, startTransition] = useTransition();
 
@@ -53,6 +54,7 @@ export function InventoryTable({ rows, locations, selectedLocationId }: Props) {
     }
     if (filterCategory) data = data.filter((r) => r.category === filterCategory);
     if (filterDistributor) data = data.filter((r) => r.distributor === filterDistributor);
+    if (filterMenuItems) data = data.filter((r) => r.is_menu_item === 1);
     return [...data].sort((a, b) => {
       const aVal = a[sortKey] ?? '';
       const bVal = b[sortKey] ?? '';
@@ -163,7 +165,7 @@ export function InventoryTable({ rows, locations, selectedLocationId }: Props) {
             </button>
           ))}
         </div>
-        <div className="flex gap-2 flex-1 min-w-0 mt-1 sm:mt-0">
+        <div className="flex gap-2 flex-1 min-w-0 mt-1 sm:mt-0 flex-wrap">
           <div className="relative flex-1 min-w-[160px]">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
@@ -190,6 +192,15 @@ export function InventoryTable({ rows, locations, selectedLocationId }: Props) {
             <option value="">All Distributors</option>
             {distributors.map((d) => <option key={d} value={d}>{d}</option>)}
           </select>
+          <button
+            onClick={() => setFilterMenuItems((v) => !v)}
+            className={cn(
+              'h-9 px-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap',
+              filterMenuItems ? 'bg-orange-500 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
+            )}
+          >
+            Menu Items
+          </button>
         </div>
       </div>
 

@@ -28,13 +28,14 @@ export async function createProduct(formData: FormData) {
   const lowThreshold = parseFloat((formData.get('low_threshold') as string) || '0') || 0;
   const warningThreshold = parseFloat((formData.get('warning_threshold') as string) || '0') || 0;
   const sku = (formData.get('sku') as string) || '';
+  const isMenuItem = formData.get('is_menu_item') === '1' ? 1 : 0;
 
   if (!name?.trim()) return { error: 'Product name is required' };
 
   const result = await execute(
-    `INSERT INTO products (name, category, unit, distributor, cost_per_unit, low_threshold, warning_threshold, sku)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [name.trim(), category, unit, distributor, cost, lowThreshold, warningThreshold, sku]
+    `INSERT INTO products (name, category, unit, distributor, cost_per_unit, low_threshold, warning_threshold, sku, is_menu_item)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [name.trim(), category, unit, distributor, cost, lowThreshold, warningThreshold, sku, isMenuItem]
   );
 
   revalidatePath('/products');
@@ -51,14 +52,15 @@ export async function updateProduct(id: number, formData: FormData) {
   const lowThreshold = parseFloat((formData.get('low_threshold') as string) || '0') || 0;
   const warningThreshold = parseFloat((formData.get('warning_threshold') as string) || '0') || 0;
   const sku = (formData.get('sku') as string) || '';
+  const isMenuItem = formData.get('is_menu_item') === '1' ? 1 : 0;
 
   if (!name?.trim()) return { error: 'Product name is required' };
 
   await execute(
     `UPDATE products SET name=?, category=?, unit=?, distributor=?, cost_per_unit=?,
-     low_threshold=?, warning_threshold=?, sku=?, updated_at=unixepoch()
+     low_threshold=?, warning_threshold=?, sku=?, is_menu_item=?, updated_at=unixepoch()
      WHERE id=?`,
-    [name.trim(), category, unit, distributor, cost, lowThreshold, warningThreshold, sku, id]
+    [name.trim(), category, unit, distributor, cost, lowThreshold, warningThreshold, sku, isMenuItem, id]
   );
 
   revalidatePath('/products');
@@ -78,8 +80,8 @@ export async function duplicateProduct(id: number) {
   if (!product) return { error: 'Product not found' };
 
   const result = await execute(
-    `INSERT INTO products (name, category, unit, distributor, cost_per_unit, low_threshold, warning_threshold, sku)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO products (name, category, unit, distributor, cost_per_unit, low_threshold, warning_threshold, sku, is_menu_item)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       `${product.name} (Copy)`,
       product.category,
@@ -89,6 +91,7 @@ export async function duplicateProduct(id: number) {
       product.low_threshold,
       product.warning_threshold,
       '',
+      product.is_menu_item ?? 0,
     ]
   );
 

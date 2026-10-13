@@ -9,6 +9,7 @@ export interface Product {
   warning_threshold: number;
   sku: string;
   is_active: number;
+  is_menu_item: number;
   created_at: number;
   updated_at: number;
 }
@@ -66,6 +67,7 @@ export interface CurrentInventoryRow {
   low_threshold: number;
   warning_threshold: number;
   sku: string;
+  is_menu_item: number;
   quantity: number | null;
   counted_at: number | null;
   session_id: number | null;

@@ -17,7 +17,7 @@ export async function getCurrentInventory(locationId?: number): Promise<CurrentI
     const rows = await query<CurrentInventoryRow>(`
       SELECT
         p.id, p.name, p.category, p.unit, p.distributor,
-        p.cost_per_unit, p.low_threshold, p.warning_threshold, p.sku,
+        p.cost_per_unit, p.low_threshold, p.warning_threshold, p.sku, p.is_menu_item,
         ic.quantity, ins.counted_at, ins.id as session_id,
         ins.location_id, sl.name as location_name
       FROM products p
@@ -40,7 +40,7 @@ export async function getCurrentInventory(locationId?: number): Promise<CurrentI
     const rows = await query<CurrentInventoryRow>(`
       SELECT
         p.id, p.name, p.category, p.unit, p.distributor,
-        p.cost_per_unit, p.low_threshold, p.warning_threshold, p.sku,
+        p.cost_per_unit, p.low_threshold, p.warning_threshold, p.sku, p.is_menu_item,
         SUM(COALESCE(ic.quantity, 0)) as quantity,
         MAX(ins.counted_at) as counted_at,
         NULL as session_id, NULL as location_id, 'All Locations' as location_name

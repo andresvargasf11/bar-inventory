@@ -24,6 +24,7 @@ export function ProductForm({ product, customFields, customValues = {}, defaults
   const [isPending, startTransition] = useTransition();
   const [showDelete, setShowDelete] = useState(false);
   const [error, setError] = useState('');
+  const [isMenuItem, setIsMenuItem] = useState(!!product?.is_menu_item);
 
   const categories = parseCategories(defaults.categories ?? 'Spirits,Beer,Wine,Liqueur,Mixer,Garnish,Supplies,Menu Items');
 
@@ -73,13 +74,31 @@ export function ProductForm({ product, customFields, customValues = {}, defaults
         <div className="rounded-xl bg-slate-900 border border-slate-700/60 p-4 space-y-4">
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Basic Info</h2>
 
-          <Input
-            label="Product Name *"
-            name="name"
-            defaultValue={product?.name}
-            placeholder="e.g. Tito's Handmade Vodka"
-            required
-          />
+          <div className="flex items-center justify-between">
+            <Input
+              label="Product Name *"
+              name="name"
+              defaultValue={product?.name}
+              placeholder="e.g. Tito's Handmade Vodka"
+              required
+            />
+          </div>
+
+          {/* Menu Item toggle */}
+          <div className="flex items-center justify-between py-1">
+            <div>
+              <div className="text-sm font-medium text-slate-300">Menu Item</div>
+              <div className="text-xs text-slate-500">Flag this product as a menu item for filtering</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsMenuItem((v) => !v)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isMenuItem ? 'bg-orange-500' : 'bg-slate-600'}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isMenuItem ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+            <input type="hidden" name="is_menu_item" value={isMenuItem ? '1' : '0'} />
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
