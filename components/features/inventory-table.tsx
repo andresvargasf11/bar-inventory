@@ -61,7 +61,7 @@ export function InventoryTable({ rows, locations, selectedLocationId }: Props) {
       const cmp = String(aVal).localeCompare(String(bVal), undefined, { numeric: true });
       return sortDir === 'asc' ? cmp : -cmp;
     });
-  }, [rows, search, filterCategory, filterDistributor, sortKey, sortDir]);
+  }, [rows, search, filterCategory, filterDistributor, filterMenuItems, sortKey, sortDir]);
 
   const totalValue = filtered.reduce((s, r) => s + r.total_value, 0);
   const lowCount = filtered.filter((r) => r.status === 'low').length;
