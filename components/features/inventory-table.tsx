@@ -54,7 +54,7 @@ export function InventoryTable({ rows, locations, selectedLocationId }: Props) {
     }
     if (filterCategory) data = data.filter((r) => r.category === filterCategory);
     if (filterDistributor) data = data.filter((r) => r.distributor === filterDistributor);
-    if (filterMenuItems) data = data.filter((r) => r.is_menu_item === 1);
+    if (filterMenuItems) data = data.filter((r) => Number(r.is_menu_item) === 1);
     return [...data].sort((a, b) => {
       const aVal = a[sortKey] ?? '';
       const bVal = b[sortKey] ?? '';

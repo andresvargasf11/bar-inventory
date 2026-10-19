@@ -25,6 +25,7 @@ export function InventoryCountForm({ products, locations, selectedLocationId, la
   const [notes, setNotes] = useState('');
   const [barcodeInput, setBarcodeInput] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [filterMenuItems, setFilterMenuItems] = useState(false);
   const [isPending, startTransition] = useTransition();
   const inputRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const barcodeRef = useRef<HTMLInputElement>(null);
@@ -125,6 +126,7 @@ export function InventoryCountForm({ products, locations, selectedLocationId, la
     });
   };
 
+  const visibleProducts = filterMenuItems ? products.filter((p) => Number(p.is_menu_item) === 1) : products;
   const filledCount = Object.values(counts).filter((v) => v !== '').length;
 
   return (
@@ -132,28 +134,40 @@ export function InventoryCountForm({ products, locations, selectedLocationId, la
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-xl font-bold text-white">New Inventory Count</h1>
-          <p className="text-sm text-slate-400">{filledCount} of {products.length} products entered</p>
+          <p className="text-sm text-slate-400">{filledCount} of {visibleProducts.length} products entered</p>
         </div>
         <Button onClick={handleSave} loading={isPending} disabled={filledCount === 0}>
           <Save size={15} /> Save Count
         </Button>
       </div>
 
-      {/* Location selector */}
-      <div className="flex gap-2 flex-wrap">
-        {locations.map((loc) => (
-          <button
-            key={loc.id}
-            type="button"
-            onClick={() => setLocationId(loc.id)}
-            className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-              locationId === loc.id ? 'bg-orange-500 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
-            )}
-          >
-            {loc.name}
-          </button>
-        ))}
+      {/* Location selector + Menu Items filter */}
+      <div className="flex gap-2 flex-wrap items-center justify-between">
+        <div className="flex gap-2 flex-wrap">
+          {locations.map((loc) => (
+            <button
+              key={loc.id}
+              type="button"
+              onClick={() => setLocationId(loc.id)}
+              className={cn(
+                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                locationId === loc.id ? 'bg-orange-500 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
+              )}
+            >
+              {loc.name}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => setFilterMenuItems((v) => !v)}
+          className={cn(
+            'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+            filterMenuItems ? 'bg-orange-500 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
+          )}
+        >
+          Menu Items
+        </button>
       </div>
 
       {/* Search input */}
@@ -217,23 +231,25 @@ export function InventoryCountForm({ products, locations, selectedLocationId, la
           <span className="w-24 text-right">Count</span>
         </div>
 
-        {products.length === 0 && (
+        {visibleProducts.length === 0 && (
           <div className="flex items-center gap-2 px-3 py-6 text-slate-500">
             <AlertCircle size={16} />
-            <span className="text-sm">No products. Add some in the Products page first.</span>
+            <span className="text-sm">
+              {filterMenuItems ? 'No products flagged as menu items yet.' : 'No products. Add some in the Products page first.'}
+            </span>
           </div>
         )}
 
         {/* Group by category */}
-        {Array.from(new Set(products.map((p) => p.category))).map((category) => (
+        {Array.from(new Set(visibleProducts.map((p) => p.category))).map((category) => (
           <div key={category}>
             <div className="px-3 py-1.5 bg-slate-800/60 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               {category || 'Uncategorized'}
             </div>
-            {products
+            {visibleProducts
               .filter((p) => p.category === category)
               .map((product) => {
-                const globalIdx = products.indexOf(product);
+                const globalIdx = visibleProducts.indexOf(product);
                 const hasValue = counts[product.id] !== '';
                 const prevCount = lastCounts[product.id];
                 const currentVal = counts[product.id];

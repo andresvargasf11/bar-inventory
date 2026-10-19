@@ -52,6 +52,14 @@ export async function getSetting(key: string): Promise<string | null> {
   return rows[0]?.value ?? null;
 }
 
+export async function runMigrations(): Promise<void> {
+  try {
+    await execute('ALTER TABLE products ADD COLUMN is_menu_item INTEGER NOT NULL DEFAULT 0');
+  } catch {
+    // Column already exists — ignore
+  }
+}
+
 export async function setSetting(key: string, value: string): Promise<void> {
   await execute(
     'INSERT INTO app_settings (key, value, updated_at) VALUES (?, ?, unixepoch()) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = unixepoch()',

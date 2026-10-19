@@ -1,7 +1,9 @@
 import { Header } from '@/components/layout/header';
 import { BottomNav } from '@/components/layout/bottom-nav';
+import { runMigrations } from '@/lib/db';
 
-export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  await runMigrations();
   return (
     <div className="min-h-screen bg-slate-950">
       <Header />
