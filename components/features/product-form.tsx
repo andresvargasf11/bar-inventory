@@ -42,8 +42,8 @@ export function ProductForm({ product, customFields, customValues = {}, defaults
           toast.error(result.error);
         } else {
           toast.success(isEdit ? 'Product updated' : 'Product created');
-          router.push('/products');
           router.refresh();
+          router.push('/products');
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Unknown error';

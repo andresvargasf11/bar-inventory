@@ -72,6 +72,7 @@ export async function updateProduct(id: number, formData: FormData) {
   }
 
   revalidatePath('/products');
+  revalidatePath(`/products/${id}`);
   revalidatePath('/inventory');
   return { success: true };
 }
