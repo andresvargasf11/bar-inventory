@@ -31,17 +31,24 @@ export function ProductForm({ product, customFields, customValues = {}, defaults
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    fd.set('is_menu_item', isMenuItem ? '1' : '0');
     setError('');
 
     startTransition(async () => {
-      const result = isEdit ? await updateProduct(product.id, fd) : await createProduct(fd);
-      if (result.error) {
-        setError(result.error);
-        toast.error(result.error);
-      } else {
-        toast.success(isEdit ? 'Product updated' : 'Product created');
-        router.push('/products');
-        router.refresh();
+      try {
+        const result = isEdit ? await updateProduct(product.id, fd) : await createProduct(fd);
+        if (result.error) {
+          setError(result.error);
+          toast.error(result.error);
+        } else {
+          toast.success(isEdit ? 'Product updated' : 'Product created');
+          router.push('/products');
+          router.refresh();
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Unknown error';
+        setError(msg);
+        toast.error(`Save failed: ${msg}`);
       }
     });
   };
@@ -97,7 +104,6 @@ export function ProductForm({ product, customFields, customValues = {}, defaults
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isMenuItem ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
-            <input type="hidden" name="is_menu_item" value={isMenuItem ? '1' : '0'} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">

@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { query, execute } from '@/lib/db';
+import { query, execute, runMigrations } from '@/lib/db';
 import { Product, CustomField } from '@/lib/types';
 
 export async function getProducts(): Promise<Product[]> {
@@ -20,6 +20,7 @@ export async function getProductById(id: number): Promise<Product | null> {
 }
 
 export async function createProduct(formData: FormData) {
+  await runMigrations();
   const name = formData.get('name') as string;
   const category = (formData.get('category') as string) || '';
   const unit = (formData.get('unit') as string) || '';
@@ -44,6 +45,7 @@ export async function createProduct(formData: FormData) {
 }
 
 export async function updateProduct(id: number, formData: FormData) {
+  await runMigrations();
   const name = formData.get('name') as string;
   const category = (formData.get('category') as string) || '';
   const unit = (formData.get('unit') as string) || '';
@@ -56,12 +58,18 @@ export async function updateProduct(id: number, formData: FormData) {
 
   if (!name?.trim()) return { error: 'Product name is required' };
 
-  await execute(
-    `UPDATE products SET name=?, category=?, unit=?, distributor=?, cost_per_unit=?,
-     low_threshold=?, warning_threshold=?, sku=?, is_menu_item=?, updated_at=unixepoch()
-     WHERE id=?`,
-    [name.trim(), category, unit, distributor, cost, lowThreshold, warningThreshold, sku, isMenuItem, id]
-  );
+  try {
+    await execute(
+      `UPDATE products SET name=?, category=?, unit=?, distributor=?, cost_per_unit=?,
+       low_threshold=?, warning_threshold=?, sku=?, is_menu_item=?, updated_at=unixepoch()
+       WHERE id=?`,
+      [name.trim(), category, unit, distributor, cost, lowThreshold, warningThreshold, sku, isMenuItem, id]
+    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[updateProduct] error:', msg);
+    return { error: `Save failed: ${msg}` };
+  }
 
   revalidatePath('/products');
   revalidatePath('/inventory');
